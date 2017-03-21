@@ -63,7 +63,7 @@ public class Int extends org.python.types.Object {
     public Int(org.python.Object[] args, java.util.Map<java.lang.String, org.python.Object> kwargs) {
         if (args[0] == null) {
             this.value = 0;
-        } else if (args[1] == null) {
+        } else if (args[1] == null && kwargs.get("base") == null) {
             try {
                 this.value = ((org.python.types.Int) args[0].__int__()).value;
             } catch (org.python.exceptions.AttributeError ae) {
@@ -78,8 +78,52 @@ public class Int extends org.python.types.Object {
                     );
                 }
             }
-        } else if (args.length > 3) {
-            throw new org.python.exceptions.NotImplementedError("int() with a base is not implemented");
+        } else {
+            //java.lang.System.out.print(((org.python.types.Str) args[0].__str__()).value);
+            long base = ((org.python.types.Int) args[1].__int__()).value;
+            if(base > 32 || base == 1) {
+                throw new org.python.exceptions.ValueError(
+                        "int() base must be >=2 and <= 36"
+                    );
+            }
+            if (kwargs.get("base") != null) {
+                base = ((org.python.types.Int) kwargs.get("base").__int__()).value;
+            }
+            String str = ((org.python.types.Str) args[0].__str__()).value;
+            boolean negative = false;
+            if(str.charAt(0) == '-'){
+                negative = true;
+                str = str.substring(1);
+            }
+            if(str.charAt(1) == 'b' || str.charAt(1) == 'o' || str.charAt(1) == 'x'){
+                if(base == 0) {
+                    if(str.charAt(1) == 'b')
+                        base = 2;
+                    if(str.charAt(1) == 'o')
+                        base = 8;
+                    if(str.charAt(1) == 'x')
+                        base = 16;
+                } else if((str.charAt(1) == 'b' && base == 2) || (str.charAt(1) == 'o' && base == 8) || (str.charAt(1) == 'x' && base == 16)) {
+
+                } else {
+                    throw new org.python.exceptions.ValueError(
+                        "invalid literal for int() with base " + base + ": '" +
+                                    str + "'"
+                    );
+                }
+                str = str.substring(2);
+            }
+            try {
+                this.value = java.lang.Long.parseLong(str, (int)base);
+            } catch (java.lang.NumberFormatException e) {
+                throw new org.python.exceptions.ValueError(
+                        "invalid literal for int() with base " + base + ": '" +
+                                    str + "'"
+                    );
+            }
+            if(negative)
+                this.value = -1*this.value;
+            //throw new org.python.exceptions.NotImplementedError("int() with a base is not implemented");
         }
     }
 

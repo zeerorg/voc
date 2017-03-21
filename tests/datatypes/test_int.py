@@ -21,6 +21,21 @@ class IntTests(TranspileTestCase):
             except AttributeError as err:
                 print(err)
             """)
+    
+    def test_with_base(self):
+        self.assertCodeExecution("""
+            try:
+                print(int("0xFFF", 0))
+                print(int("1001", 2))
+                print(int("1001", 32))
+                print(int("0b1001", 6))
+                print(int("1001", 36))
+                print(int("1003", base=64))
+                print(int("0b10011", base=2))
+                print(int("-0o76", 0))
+            except Exception as err:
+                print(err)
+            """)
 
     @expectedFailure
     def test_invalid_literal(self):
